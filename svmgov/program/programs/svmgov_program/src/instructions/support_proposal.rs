@@ -1,11 +1,12 @@
 use anchor_lang::{
     prelude::*,
-    solana_program::{
-        epoch_stake::{get_epoch_stake_for_vote_account, get_epoch_total_stake},
-        vote::{program as vote_program, state::VoteState},
-    },
+};
+use solana_program::{
+    epoch_stake::{get_epoch_stake_for_vote_account, get_epoch_total_stake},
+  
 };
 use solana_vote_interface::state::VoteStateVersions;
+use solana_vote_interface::program as vote_program;
 
 use crate::{
     constants::ANCHOR_DISCRIMINATOR,
@@ -35,7 +36,7 @@ pub struct SupportProposal<'info> {
     /// account they operate.
     #[account(
         constraint = spl_vote_account.owner == &vote_program::ID @ ProgramError::InvalidAccountOwner,
-        constraint = spl_vote_account.data_len() == VoteState::size_of() @ GovernanceError::InvalidVoteAccountSize
+        constraint = VoteStateVersions::is_correct_size_and_initialized(&spl_vote_account.data.borrow().as_ref()) @ GovernanceError::InvalidVoteAccountSize
     )]
     pub spl_vote_account: UncheckedAccount<'info>,
 
@@ -192,7 +193,7 @@ impl<'info> SupportProposal<'info> {
                 let signer_seeds = &[&seeds[..]];
 
                 let cpi_ctx = CpiContext::new_with_signer(
-                    self.ballot_program.to_account_info(),
+                    self.ballot_program.key(),
                     ncn_snapshot::cpi::accounts::InitBallotBox {
                         payer: self.signer.to_account_info(),
                         proposal: proposal_account.to_account_info(),

@@ -1,8 +1,8 @@
 use anchor_lang::{
     err,
     prelude::{msg, Result},
-    solana_program::hash::{hashv, Hash},
 };
+use solana_program::hash::{hashv, Hash};
 
 use crate::error::ErrorCode;
 

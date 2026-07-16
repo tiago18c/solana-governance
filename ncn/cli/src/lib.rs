@@ -8,9 +8,9 @@ use crate::consts::{MARINADE_OPS_VOTING_WALLET, MARINADE_WITHDRAW_AUTHORITY};
 use im::HashMap;
 pub use merkle::*;
 
-use anchor_lang::prelude::Pubkey as AnchorPubkey;
+//use anchor_lang::prelude::Pubkey;
 use anyhow::Error;
-use borsh_stake::BorshDeserialize;
+use borsh::BorshDeserialize;
 use crate::merkle_tree::{get_proof, Delegation, MerkleTree};
 use ncn_snapshot::{MetaMerkleLeaf, StakeMerkleLeaf};
 use solana_program::pubkey::Pubkey;
@@ -26,6 +26,10 @@ use spl_stake_pool::find_withdraw_authority_program_address;
 use spl_stake_pool::state::AccountType;
 use spl_stake_pool::state::StakePool;
 use std::sync::Arc;
+//use solana_address
+
+use solana_program_v2::pubkey::Pubkey as PubkeyV2;
+
 
 pub fn upload_signature_message(
     slot: u64,
@@ -39,10 +43,6 @@ pub fn upload_signature_message(
     message.extend_from_slice(merkle_root.as_bytes());
     message.extend_from_slice(snapshot_hash.as_bytes());
     message
-}
-
-fn to_anchor_pubkey(pubkey: Pubkey) -> AnchorPubkey {
-    AnchorPubkey::from(pubkey.to_bytes())
 }
 
 fn get_validator_identity(
@@ -105,11 +105,11 @@ fn collect_stake_delegation(
 /// Updates given map with new entry mapping withdraw authority to manager authority
 /// if account is a StakePool.
 fn update_stake_pool_voter_map(
-    stake_pool_voter_map: &mut HashMap<AnchorPubkey, AnchorPubkey>,
+    stake_pool_voter_map: &mut HashMap<Pubkey, Pubkey>,
     account: &AccountSharedData,
     stake_pool_pubkey: &Pubkey,
 ) {
-    if to_anchor_pubkey(*account.owner()) != spl_stake_pool::id() {
+    if account.owner().as_array() != spl_stake_pool::id().as_array() {
         return;
     }
 
@@ -122,13 +122,13 @@ fn update_stake_pool_voter_map(
     if let Ok(stake_pool) = StakePool::deserialize(&mut &account.data()[..]) {
         let (withdraw_authority, _) = find_withdraw_authority_program_address(
             &spl_stake_pool::id(),
-            &to_anchor_pubkey(*stake_pool_pubkey),
+            &PubkeyV2::new_from_array(stake_pool_pubkey.to_bytes()),
         );
-        if stake_pool.manager == AnchorPubkey::default() {
+        if stake_pool.manager == PubkeyV2::default() {
             return;
         }
 
-        stake_pool_voter_map.insert(withdraw_authority, stake_pool.manager);
+        stake_pool_voter_map.insert(Pubkey::new_from_array(*withdraw_authority.as_array()), Pubkey::new_from_array(*stake_pool.manager.as_array()));
     }
 }
 
@@ -140,7 +140,7 @@ pub fn generate_meta_merkle_snapshot(bank: &Arc<Bank>) -> Result<MetaMerkleSnaps
 
     // Pre-process: Find all Stake Pools and map withdraw_authority to their voting wallet
     // (StakePool manager by default)
-    let mut stake_pool_voter_map: HashMap<AnchorPubkey, AnchorPubkey> = HashMap::new();
+    let mut stake_pool_voter_map: HashMap<Pubkey, Pubkey> = HashMap::new();
 
     // Maps Marinade LST stake pool withdraw authority to its ops wallet.
     stake_pool_voter_map.insert(MARINADE_WITHDRAW_AUTHORITY, MARINADE_OPS_VOTING_WALLET);
@@ -189,7 +189,7 @@ pub fn generate_meta_merkle_snapshot(bank: &Arc<Bank>) -> Result<MetaMerkleSnaps
             let mut stake_merkle_leaves = delegations
                 .iter()
                 .map(|delegation| {
-                    let mut voting_wallet = to_anchor_pubkey(delegation.withdrawer_pubkey);
+                    let mut voting_wallet = delegation.withdrawer_pubkey;
 
                     // Overwrite voting wallet if stake account has a withdraw authority that is
                     // mapped to a different wallet. Otherwise, use the withdrawer authority.
@@ -201,7 +201,7 @@ pub fn generate_meta_merkle_snapshot(bank: &Arc<Bank>) -> Result<MetaMerkleSnaps
                     stake_account_count += 1;
                     StakeMerkleLeaf {
                         voting_wallet,
-                        stake_account: to_anchor_pubkey(delegation.stake_account_pubkey),
+                        stake_account: delegation.stake_account_pubkey,
                         active_stake: delegation.lamports_delegated,
                     }
                 })
@@ -227,8 +227,8 @@ pub fn generate_meta_merkle_snapshot(bank: &Arc<Bank>) -> Result<MetaMerkleSnaps
 
             // 4. Build MetaMerkleLeaf using root node of StakeMerkleTree.
             let meta_merkle_leaf = MetaMerkleLeaf {
-                vote_account: to_anchor_pubkey(*voter_pubkey),
-                voting_wallet: to_anchor_pubkey(voting_wallet.unwrap_or_default()),
+                vote_account: *voter_pubkey,
+                voting_wallet: voting_wallet.unwrap_or_default(),
                 stake_merkle_root: stake_merkle.get_root().unwrap().to_bytes(),
                 active_stake: vote_account_stake,
             };

@@ -1,8 +1,8 @@
-use anchor_client::solana_sdk::signature::Signer;
 use anchor_client::{
-    solana_sdk::{bs58, commitment_config::CommitmentConfig, pubkey::Pubkey, signature::Keypair},
+    //solana_sdk::{bs58, commitment_config::CommitmentConfig, pubkey::Pubkey, signature::Keypair},
     Client, Cluster, Program,
 };
+use solana_signer::Signer;
 use anyhow::{anyhow, Context, Result};
 use clap::Parser;
 use cli::{generate_meta_merkle_snapshot, utils::*, MetaMerkleSnapshot};
@@ -16,6 +16,10 @@ use cli::ledger::{
     SnapshotPaths,
 };
 use tokio::runtime::Builder;
+use solana_program::pubkey::Pubkey;
+use solana_keypair::Keypair;
+use bs58;
+use solana_commitment_config::CommitmentConfig;
 
 /// Solana Governance Voter Snapshot CLI.
 ///

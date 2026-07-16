@@ -1,12 +1,6 @@
 use std::{cmp::min, thread, time::Duration};
 
 use anchor_client::{
-    solana_sdk::{
-        commitment_config::CommitmentConfig,
-        pubkey::Pubkey,
-        signature::{read_keypair_file, Keypair},
-        signer::Signer,
-    },
     Client, ClientError, Cluster, Program,
 };
 use cli::{utils::*, MetaMerkleSnapshot};
@@ -14,6 +8,12 @@ use ncn_snapshot::{
     Ballot, BallotBox, BallotTally, ConsensusResult, MetaMerkleProof, OperatorVote, ProgramConfig,
     MAX_BALLOT_TALLIES, MAX_OPERATOR_VOTES,
 };
+
+use solana_commitment_config::CommitmentConfig;
+use solana_pubkey::Pubkey;
+use solana_keypair::Keypair;
+use solana_keypair::read_keypair_file;
+use solana_signer::Signer;
 
 use crate::utils::{
     assert::{assert_client_err, assert_err_contains},
@@ -187,7 +187,7 @@ fn test_balloting(
 
     let tx = send_init_ballot_box(tx_sender1, ballot_box_pda, snapshot_slot)?;
     let (slot_created, tx_block_time) = fetch_tx_block_details(program, tx);
-    let epoch_info = program.rpc().get_epoch_info()?;
+    let epoch_info = program.rpc().get_epoch_info().map_err(|e| ClientError::SolanaClientError(Box::new(e)))?;
     let vote_expiry_timestamp = tx_block_time + VOTE_DURATION;
 
     let program_config: ProgramConfig = program.account(context.program_config_pda)?;
@@ -426,7 +426,7 @@ fn test_tie_breaker(
     };
     let tx = send_init_ballot_box(tx_sender1, ballot_box_pda, snapshot_slot)?;
     let (slot_created, tx_block_time) = fetch_tx_block_details(program, tx);
-    let epoch_info = program.rpc().get_epoch_info()?;
+    let epoch_info = program.rpc().get_epoch_info().map_err(|e| ClientError::SolanaClientError(Box::new(e)))?;
     let vote_expiry_timestamp = tx_block_time + VOTE_DURATION;
 
     let program_config: ProgramConfig = program.account(context.program_config_pda)?;
@@ -524,8 +524,8 @@ fn test_tie_breaker(
     assert_err_contains(tx, "Voting not expired");
 
     // Sleep till expiry
-    let current_slot = program.rpc().get_slot()?;
-    let current_time = program.rpc().get_block_time(current_slot)?;
+    let current_slot = program.rpc().get_slot().map_err(|e| ClientError::SolanaClientError(Box::new(e)))?;
+    let current_time = program.rpc().get_block_time(current_slot).map_err(|e| ClientError::SolanaClientError(Box::new(e)))?;
     let sleep_duration = vote_expiry_timestamp - current_time + 2;
     thread::sleep(Duration::from_secs(sleep_duration as u64));
 

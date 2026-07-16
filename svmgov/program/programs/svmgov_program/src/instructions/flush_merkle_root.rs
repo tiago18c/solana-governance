@@ -1,4 +1,4 @@
-use anchor_lang::{prelude::*, solana_program::vote};
+use anchor_lang::{prelude::*};
 
 use crate::{
     error::GovernanceError,
@@ -6,6 +6,8 @@ use crate::{
     state::{GlobalConfig, Proposal},
     utils::compute_future_snapshot_slot,
 };
+
+use solana_vote_interface::program as vote_program;
 
 #[derive(Accounts)]
 pub struct FlushMerkleRoot<'info> {
@@ -25,7 +27,7 @@ pub struct FlushMerkleRoot<'info> {
     /// PDA. A mismatched vote account is therefore rejected regardless of who signs
     /// this instruction (the signer is the admin, not necessarily the author).
     #[account(
-        constraint = spl_vote_account.owner == &vote::program::ID @ ProgramError::InvalidAccountOwner,
+        constraint = spl_vote_account.owner == &vote_program::ID @ ProgramError::InvalidAccountOwner,
     )]
     pub spl_vote_account: UncheckedAccount<'info>,
     /// CHECK: Ballot box account - may or may not exist, checked with data_is_empty()
@@ -137,7 +139,7 @@ impl<'info> FlushMerkleRoot<'info> {
             let signer = &[&seeds[..]];
             // Initialize the ballot box via CPI
             let cpi_ctx = CpiContext::new_with_signer(
-                self.ballot_program.to_account_info(),
+                self.ballot_program.key(),
                 ncn_snapshot::cpi::accounts::InitBallotBox {
                     payer: self.signer.to_account_info(),
                     proposal: self.proposal.to_account_info(),

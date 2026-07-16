@@ -20,7 +20,7 @@ pub struct MetaMerkleSnapshot {
 
 impl MetaMerkleSnapshot {
     pub fn to_compressed_bytes(&self) -> io::Result<Vec<u8>> {
-        let data = self.try_to_vec()?;
+        let data = borsh::to_vec(self)?;
         let mut enc = GzEncoder::new(Vec::new(), Compression::default());
         enc.write_all(&data)?;
         enc.finish()

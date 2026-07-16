@@ -1,4 +1,6 @@
-use anchor_client::{solana_sdk::signature::Signature, ClientError};
+use solana_signature::Signature;
+use anchor_client::ClientError;
+
 
 pub fn assert_client_err(res: Result<Signature, ClientError>, msg: &str) {
     assert!(res.unwrap_err().to_string().contains(msg))

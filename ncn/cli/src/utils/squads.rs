@@ -21,17 +21,15 @@
 //! call is unconditional once the gate has passed.
 //!
 
-use anchor_client::{
-    solana_sdk::{
-        clock::Slot,
-        instruction::Instruction,
-        pubkey::Pubkey,
-        signature::{Keypair, Signature, Signer},
-        transaction::Transaction,
-    },
-    Program,
-};
+use anchor_client::Program;
 use anyhow::{anyhow, Result};
+use solana_clock::Slot;
+use solana_pubkey::Pubkey;
+use solana_instruction::Instruction;
+use solana_keypair::Keypair;
+use solana_signature::Signature;
+use solana_signer::Signer;
+use solana_transaction::Transaction;
 use squads_client::{vault_pda, Multisig, SquadsClient};
 
 /// Configuration that pins a Squads vault transaction to a specific multisig + proposer.

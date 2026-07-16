@@ -11,8 +11,8 @@
 use std::collections::BTreeMap;
 
 use solana_program::instruction::Instruction;
-use solana_program::message::v0::{LoadedAddresses, MessageAddressTableLookup};
-use solana_program::message::{AddressLookupTableAccount, MessageHeader};
+use solana_message::v0::{LoadedAddresses, MessageAddressTableLookup};
+use solana_message::{AddressLookupTableAccount, MessageHeader};
 use solana_program::pubkey::Pubkey;
 
 use super::MessageCompileError;

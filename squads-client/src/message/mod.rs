@@ -10,8 +10,8 @@ use std::io::{Read, Write};
 
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::instruction::Instruction;
-use solana_program::message::v0::MessageAddressTableLookup as V0MessageAddressTableLookup;
-use solana_program::message::{AccountKeys, AddressLookupTableAccount, MessageHeader};
+use solana_message::v0::MessageAddressTableLookup as V0MessageAddressTableLookup;
+use solana_message::{AccountKeys, AddressLookupTableAccount, MessageHeader};
 use solana_program::pubkey::Pubkey;
 
 use crate::small_vec::SmallVec;
@@ -197,7 +197,7 @@ pub fn try_compile(
     }
 
     let (header, static_keys) = compiled_keys.try_into_message_components()?;
-    let dynamic_keys: solana_program::message::v0::LoadedAddresses =
+    let dynamic_keys: solana_message::v0::LoadedAddresses =
         loaded_addresses_list.into_iter().collect();
     let account_keys = AccountKeys::new(&static_keys, Some(&dynamic_keys));
     let instructions = account_keys

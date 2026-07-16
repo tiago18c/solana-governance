@@ -1,4 +1,5 @@
-use anchor_lang::{prelude::*, solana_program::hash::Hash};
+use anchor_lang::{prelude::*};
+use solana_program::hash::Hash;
 
 use crate::{
     error::ErrorCode, merkle_helper::verify_helper, ConsensusResult, MetaMerkleProof,

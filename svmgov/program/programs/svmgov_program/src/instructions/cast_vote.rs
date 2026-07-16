@@ -1,7 +1,9 @@
 use anchor_lang::{
     prelude::*,
-    solana_program::vote::{program as vote_program, state::VoteState},
 };
+//use solana_vote::vote::{program as vote_program, state::VoteState};
+use solana_vote_interface::state::VoteStateVersions;
+use solana_vote_interface::program as vote_program;
 
 use crate::{
     calculate_vote_lamports,
@@ -33,7 +35,7 @@ pub struct CastVote<'info> {
     /// spl_vote_account, both anchored to proposal.consensus_result.
     #[account(
         constraint = spl_vote_account.owner == &vote_program::ID @ ProgramError::InvalidAccountOwner,
-        constraint = spl_vote_account.data_len() == VoteState::size_of() @ GovernanceError::InvalidVoteAccountSize
+        constraint = VoteStateVersions::is_correct_size_and_initialized(&spl_vote_account.data.borrow().as_ref()) @ GovernanceError::InvalidVoteAccountSize
     )]
     pub spl_vote_account: UncheckedAccount<'info>,
     /// CHECK: Vote override cache account. Might not yet exist

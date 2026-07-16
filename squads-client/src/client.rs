@@ -8,7 +8,7 @@
 //! Solana RPC stacks (e.g., `solana-client`, `solana-rpc-client`, or any test harness).
 
 use solana_program::instruction::Instruction;
-use solana_program::message::AddressLookupTableAccount;
+use solana_message::AddressLookupTableAccount;
 use solana_program::pubkey::Pubkey;
 
 use crate::error::{Result, SquadsError};

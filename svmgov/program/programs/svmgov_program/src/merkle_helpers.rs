@@ -19,7 +19,7 @@ pub fn verify_merkle_proof_cpi<'info>(
         consensus_result: consensus_result_account.clone(),
     };
 
-    let cpi_ctx = CpiContext::new(ncn_snapshot_program.clone(), cpi_accounts);
+    let cpi_ctx = CpiContext::new(ncn_snapshot_program.key(), cpi_accounts);
 
     // Call verify_merkle_proof from ncn-snapshot program
     verify_merkle_proof(cpi_ctx, stake_merkle_proof, stake_merkle_leaf)?;

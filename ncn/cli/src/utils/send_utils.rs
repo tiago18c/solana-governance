@@ -1,21 +1,18 @@
-use anchor_client::{
-    anchor_lang::system_program,
-    solana_sdk::{
-        compute_budget::ComputeBudgetInstruction,
-        instruction::Instruction,
-        pubkey::Pubkey,
-        signature::{Keypair, Signature},
-        signer::Signer,
-        transaction::Transaction,
-    },
-    ClientError, Program,
-};
+use anchor_client::{anchor_lang::system_program, ClientError, Program};
 use anyhow::{anyhow, Result};
 use ncn_snapshot::{accounts, instruction, Ballot, MetaMerkleLeaf, ProgramConfig, StakeMerkleLeaf};
 
 use crate::utils::squads::{
     effective_signer, route_via_squads, RoutedOutcome, SquadsRoutingConfig,
 };
+
+use solana_compute_budget_interface::ComputeBudgetInstruction;
+use solana_instruction::Instruction;
+use solana_keypair::Keypair;
+use solana_pubkey::Pubkey;
+use solana_signature::Signature;
+use solana_signer::Signer;
+use solana_transaction::Transaction;
 
 pub struct TxSender<'a> {
     pub program: &'a Program<&'a Keypair>,
@@ -79,7 +76,10 @@ fn send_with_anchor(
     program: &Program<&Keypair>,
 ) -> Result<Signature, ClientError> {
     let payer = program.payer();
-    let blockhash = program.rpc().get_latest_blockhash()?;
+    let blockhash = program
+        .rpc()
+        .get_latest_blockhash()
+        .map_err(|e| ClientError::SolanaClientError(Box::new(e)))?;
 
     if let Some(lamports) = micro_lamports {
         ixs.insert(
@@ -92,7 +92,7 @@ fn send_with_anchor(
     program
         .rpc()
         .send_and_confirm_transaction(&tx)
-        .map_err(ClientError::SolanaClientError)
+        .map_err(|e| ClientError::SolanaClientError(Box::new(e)))
 }
 
 pub fn send_init_program_config(
@@ -119,7 +119,7 @@ pub fn send_init_program_config(
         .args(instruction::InitProgramConfig {
             svmgov_program_pubkey,
         })
-        .instructions()?;
+        .instructions();
 
     tx_sender.route(ixs, &[tx_sender.payer, tx_sender.authority])
 }
@@ -141,7 +141,7 @@ pub fn send_update_operator_whitelist(
             operators_to_add,
             operators_to_remove,
         })
-        .instructions()?;
+        .instructions();
 
     tx_sender.route(ixs, &[tx_sender.payer, tx_sender.authority])
 }
@@ -171,7 +171,7 @@ pub fn send_update_program_config(
             vote_duration,
             svmgov_program_pubkey,
         })
-        .instructions()?;
+        .instructions();
 
     tx_sender.route(ixs, &[tx_sender.payer, tx_sender.authority])
 }
@@ -189,7 +189,7 @@ pub fn send_cast_vote(
             ballot_box,
         })
         .args(instruction::CastVote { ballot })
-        .instructions()?;
+        .instructions();
 
     tx_sender.send(ixs)
 }
@@ -211,7 +211,7 @@ pub fn send_cast_and_remove_votes(
             .args(instruction::CastVote {
                 ballot: ballot.clone(),
             })
-            .instructions()?;
+            .instructions();
         ixs.extend(cast_ix);
         let remove_ix = tx_sender
             .program
@@ -221,7 +221,7 @@ pub fn send_cast_and_remove_votes(
                 ballot_box,
             })
             .args(instruction::RemoveVote {})
-            .instructions()?;
+            .instructions();
         ixs.extend(remove_ix);
     }
     tx_sender.send(ixs)
@@ -248,7 +248,7 @@ pub fn send_init_ballot_box(
             proposal_seed: 0,
             spl_vote_account: Pubkey::default(),
         })
-        .instructions()?;
+        .instructions();
 
     tx_sender.send(ixs)
 }
@@ -265,7 +265,7 @@ pub fn send_remove_vote(
             ballot_box,
         })
         .args(instruction::RemoveVote {})
-        .instructions()?;
+        .instructions();
 
     tx_sender.send(ixs)
 }
@@ -285,7 +285,7 @@ pub fn send_finalize_ballot(
             system_program: system_program::ID,
         })
         .args(instruction::FinalizeBallot {})
-        .instructions()?;
+        .instructions();
 
     tx_sender.send_with_signers(ixs, &[tx_sender.payer])
 }
@@ -306,7 +306,7 @@ pub fn send_set_tie_breaker(
             program_config: ProgramConfig::pda().0,
         })
         .args(instruction::SetTieBreaker { ballot })
-        .instructions()?;
+        .instructions();
 
     tx_sender.route(ixs, &[tx_sender.payer, tx_sender.authority])
 }
@@ -323,7 +323,7 @@ pub fn send_reset_ballot_box(tx_sender: &TxSender, ballot_box: Pubkey) -> Result
             program_config: ProgramConfig::pda().0,
         })
         .args(instruction::ResetBallotBox {})
-        .instructions()?;
+        .instructions();
 
     tx_sender.route(ixs, &[tx_sender.payer, tx_sender.authority])
 }
@@ -350,7 +350,7 @@ pub fn send_init_meta_merkle_proof(
             meta_merkle_proof,
             close_timestamp,
         })
-        .instructions()?;
+        .instructions();
 
     tx_sender.send(ixs)
 }
@@ -373,7 +373,7 @@ pub fn send_verify_merkle_proof(
             stake_merkle_proof,
             stake_merkle_leaf,
         })
-        .instructions()?;
+        .instructions();
 
     tx_sender.send(ixs)
 }
@@ -391,7 +391,7 @@ pub fn send_close_meta_merkle_proof(
             system_program: system_program::ID,
         })
         .args(instruction::CloseMetaMerkleProof {})
-        .instructions()?;
+        .instructions();
 
     tx_sender.send(ixs)
 }
@@ -406,7 +406,7 @@ pub fn send_finalize_proposed_authority(tx_sender: &TxSender) -> Result<RoutedOu
             program_config: ProgramConfig::pda().0,
         })
         .args(instruction::FinalizeProposedAuthority {})
-        .instructions()?;
+        .instructions();
 
     tx_sender.route(ixs, &[tx_sender.payer, tx_sender.authority])
 }

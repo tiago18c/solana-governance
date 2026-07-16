@@ -32,7 +32,7 @@ flate2 = "1.0"
 chrono = { version = "0.4", features = ["serde"] }
 log = "0.4.22"
 env_logger = "0.10.2"
-anchor-lang = "0.31.1"
+anchor-lang = "1.1.2"
 solana-sdk = "=4.0.1"
 ncn-snapshot = { path = "../programs/ncn-snapshot" }
 borsh = { version = "1.5.7" }

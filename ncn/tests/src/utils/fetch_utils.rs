@@ -1,11 +1,11 @@
 use anchor_client::{
-    solana_client::rpc_config::RpcTransactionConfig,
-    solana_sdk::{
-        commitment_config::CommitmentConfig,
-        signature::{Keypair, Signature},
-    },
     Program,
 };
+use solana_rpc_client_types::config::RpcTransactionConfig;
+use solana_commitment_config::CommitmentConfig;
+use solana_signature::Signature;
+use solana_keypair::Keypair;
+
 
 pub fn fetch_tx_block_details(program: &Program<&Keypair>, tx: Signature) -> (u64, i64) {
     let tx_details = program

@@ -1,7 +1,6 @@
 mod common;
 use common::setup_server;
 
-use anchor_lang::solana_program::hash::Hash;
 use cli::merkle_tree::{get_proof, MerkleTree};
 use ncn_snapshot::merkle_helper::verify_helper;
 use reqwest::{
@@ -9,6 +8,7 @@ use reqwest::{
     StatusCode,
 };
 use solana_sdk::{signature::Keypair, signer::Signer};
+use solana_sdk::hash::Hash;
 
 const NETWORK: &str = "testnet";
 

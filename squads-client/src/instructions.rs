@@ -9,8 +9,7 @@ use std::io::Write;
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::instruction::{AccountMeta, Instruction};
 use solana_program::pubkey::Pubkey;
-#[allow(deprecated)]
-use solana_program::system_program;
+use solana_sdk_ids::system_program;
 
 use crate::discriminator::instruction_discriminator;
 
@@ -113,7 +112,7 @@ pub fn vault_transaction_create_from_instructions(
     vault_index: u8,
     vault_pda: &Pubkey,
     inner_instructions: &[solana_program::instruction::Instruction],
-    address_lookup_table_accounts: &[solana_program::message::AddressLookupTableAccount],
+    address_lookup_table_accounts: &[solana_message::AddressLookupTableAccount],
     memo: Option<String>,
 ) -> Result<Instruction, crate::error::SquadsError> {
     let message = crate::message::try_compile(

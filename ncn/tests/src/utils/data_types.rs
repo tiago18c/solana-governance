@@ -1,5 +1,6 @@
-use anchor_client::solana_sdk::{pubkey::Pubkey, signature::Keypair};
 use cli::MetaMerkleSnapshot;
+use solana_pubkey::Pubkey;
+use solana_keypair::Keypair;
 
 pub struct ProgramTestContext {
     pub payer: Keypair,

@@ -1,7 +1,5 @@
-use anchor_lang::{
-    prelude::*,
-    solana_program::hash::{hashv, Hash},
-};
+use anchor_lang::prelude::*;
+use solana_program::hash::{hashv, Hash};
 
 #[account]
 #[derive(Debug)]

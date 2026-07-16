@@ -5,7 +5,14 @@ description = "Governance NCN Voting Tests"
 edition = "2021"
 
 [dependencies]
-anchor-client = "0.31.1"
+anchor-client = "1.1.2"
+solana-signature = "3.0.0"
+solana-pubkey = "3.0.0"
+solana-keypair = "3.0.0"
+solana-rpc-client = "3.0.0"
+solana-rpc-client-types = "3.0.0"
+solana-commitment-config = "3.0.0"
+solana-signer = "3.0.0"
 ncn-snapshot = { path = "../programs/ncn-snapshot" }
 borsh = { version = "0.10.3" }
 cli = { path = "../cli"}
